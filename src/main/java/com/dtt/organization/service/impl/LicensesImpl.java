@@ -725,7 +725,7 @@ public class LicensesImpl implements LicensesIface {
 			SecretKey tmp = factory.generateSecret(spec);
 			SecretKeySpec secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
 
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
 			cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivspec);
 			return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes("UTF-8")));
 		} catch (Exception e) {
