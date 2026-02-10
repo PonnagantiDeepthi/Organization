@@ -80,6 +80,7 @@ dependencies {
 
 	// Version constraints for transitive dependencies
 	implementation 'org.springframework:spring-webmvc:6.1.22'
+	implementation 'com.github.spotbugs:spotbugs:4.9.7'
 
 }
 
