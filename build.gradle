@@ -27,7 +27,7 @@ repositories {
 dependencies {
 	// Local JAR
 	implementation files('DAESLogIntegrity.jar')
-	implementation 'commons-fileupload:commons-fileupload:1.5'
+	implementation 'commons-fileupload:commons-fileupload:1.6.0'
 	implementation 'io.sentry:sentry:7.14.0'
 
 
