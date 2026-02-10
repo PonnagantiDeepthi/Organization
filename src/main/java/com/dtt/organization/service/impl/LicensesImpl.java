@@ -714,25 +714,67 @@ public class LicensesImpl implements LicensesIface {
 		}
 	}
 
+	// public static String encrypt(String plainText) {
+	// 	String secretKey = "DiGiTaLtRuStTeChNoLoGy";
+	// 	try {
+	// 		byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	// 		IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+	// 		SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+	// 		KeySpec spec = new PBEKeySpec(secretKey.toCharArray(), getSalt(plainText), 65536, 256);
+	// 		SecretKey tmp = factory.generateSecret(spec);
+	// 		SecretKeySpec secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+	// 		Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+	// 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivspec);
+	// 		return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes("UTF-8")));
+	// 	} catch (Exception e) {
+	// 		System.out.println("Error while encrypting: " + e.toString());
+	// 	}
+	// 	return null;
+	// }
+
+
 	public static String encrypt(String plainText) {
-		String secretKey = "DiGiTaLtRuStTeChNoLoGy";
-		try {
-			byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-			IvParameterSpec ivspec = new IvParameterSpec(iv);
+        try {
+			private static final String SECRET = "DiGiTaLtRuStTeChNoLoGy";
+    private static final int SALT_LENGTH = 16;
+    private static final int IV_LENGTH = 12; // Recommended for GCM
+    private static final int TAG_LENGTH = 128;
+            // 1️⃣ Generate random salt
+            byte[] salt = new byte[SALT_LENGTH];
+            SecureRandom random = new SecureRandom();
+            random.nextBytes(salt);
 
-			SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-			KeySpec spec = new PBEKeySpec(secretKey.toCharArray(), getSalt(plainText), 65536, 256);
-			SecretKey tmp = factory.generateSecret(spec);
-			SecretKeySpec secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
+            // 2️⃣ Derive key
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(SECRET.toCharArray(), salt, 65536, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
-			Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-			cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivspec);
-			return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes("UTF-8")));
-		} catch (Exception e) {
-			System.out.println("Error while encrypting: " + e.toString());
-		}
-		return null;
-	}
+            // 3️⃣ Generate random IV
+            byte[] iv = new byte[IV_LENGTH];
+            random.nextBytes(iv);
+
+            // 4️⃣ Encrypt using AES-GCM
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH, iv);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec);
+
+            byte[] cipherText = cipher.doFinal(plainText.getBytes("UTF-8"));
+
+            // 5️⃣ Combine salt + iv + ciphertext
+            byte[] encryptedData = new byte[salt.length + iv.length + cipherText.length];
+            System.arraycopy(salt, 0, encryptedData, 0, salt.length);
+            System.arraycopy(iv, 0, encryptedData, salt.length, iv.length);
+            System.arraycopy(cipherText, 0, encryptedData, salt.length + iv.length, cipherText.length);
+
+            return Base64.getEncoder().encodeToString(encryptedData);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Encryption failed", e);
+        }
+    }
 
 	private static byte[] getSalt(String s) throws NoSuchAlgorithmException {
 		String salt = "ssshhhhhhhhhhh!!!!boooooooooom";
