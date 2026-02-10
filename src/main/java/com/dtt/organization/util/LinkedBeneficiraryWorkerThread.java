@@ -40,6 +40,9 @@ public class LinkedBeneficiraryWorkerThread implements Runnable {
 		this.sponsorLinkedMessage = sponsorLinkedMessage;
 	}
 
+	@Value("${security.allowed-hosts}")
+    private List<String> allowedHosts;
+
 	@Override
 	public void run() {
 		try {
@@ -102,7 +105,7 @@ public class LinkedBeneficiraryWorkerThread implements Runnable {
 			dataDTO.setNotificationContext(contextDTO);
 			notificationBody.setData(dataDTO);
 			HttpEntity<Object> requestEntity = new HttpEntity<>(notificationBody, headers);
-
+			validateUrl(url);
 			ResponseEntity<Object> res = restTemplate.exchange(sendNotificationURL, HttpMethod.POST, requestEntity,
 					Object.class);
 			if (res.getStatusCodeValue() == 200) {
@@ -114,5 +117,27 @@ public class LinkedBeneficiraryWorkerThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
+
+	private void validateUrl(String url) {
+        try {
+            URI uri = new URI(url);
+ 
+            // 1. Allow only http / https
+            if (uri.getScheme() == null ||
+                    (!"http".equalsIgnoreCase(uri.getScheme())
+&& !"https".equalsIgnoreCase(uri.getScheme()))) {
+                throw new IllegalArgumentException("Invalid URL scheme");
+            }
+ 
+            // 2. Allow only configured hosts
+            String host = uri.getHost();
+            if (host == null || !allowedHosts.contains(host)) {
+                throw new IllegalArgumentException("Host not allowed");
+            }
+ 
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid or unsafe URL");
+        }
+    }
 
 }
